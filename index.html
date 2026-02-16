@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fenomen Eğitim Kurumları - Fiyat Listesi</title>
+  <style>
+    :root{
+      /* Ekran teması (renkli), baskıda otomatik siyah-beyaz */
+      --bg: #f4f6fb;
+      --paper: #ffffff;
+      --ink: #0a0f1a;
+      --muted:#334155;
+      --line:#e5e7eb;
+
+      --accent:#0f172a;   /* başlık/ikon koyu */
+      --accent2:#f97316;  /* vurgu (ekran) */
+
+      --radius: 18px;
+      --shadow: 0 22px 70px rgba(2,6,23,.12);
+    }
+
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Helvetica Neue", sans-serif;
+      color:var(--ink);
+      background:
+        radial-gradient(1100px 700px at 15% 0%, rgba(249,115,22,.12), transparent 60%),
+        radial-gradient(900px 600px at 90% 20%, rgba(2,6,23,.08), transparent 55%),
+        var(--bg);
+      padding: 22px 14px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+    }
+
+    /* Üst butonlar (yazdırmada gizlenecek) */
+    .toolbar{
+      width:100%;
+      max-width: 860px;
+      display:flex;
+      gap:12px;
+      justify-content:flex-end;
+      align-items:center;
+      margin: 0 0 12px 0;
+    }
+    .btn{
+      border:1px solid rgba(2,6,23,.16);
+      background:#fff;
+      color:var(--ink);
+      padding:12px 16px;
+      border-radius: 14px;
+      cursor:pointer;
+      font-weight: 900;
+      font-size: 15px;
+      letter-spacing:.2px;
+      transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
+    }
+    .btn:hover{ transform: translateY(-1px); box-shadow: 0 12px 30px rgba(2,6,23,.10); }
+    .btn.primary{
+      border: none;
+      background: linear-gradient(135deg, var(--accent2), #fb923c);
+      color:#fff;
+    }
+    .btn.primary:hover{ box-shadow: 0 16px 38px rgba(249,115,22,.22); }
+
+    /* Fiyat listesi kartı (yazdırılacak alan) */
+    .sheet{
+      width:100%;
+      max-width: 860px;
+      background: var(--paper);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(2,6,23,.10);
+      overflow:hidden;
+    }
+
+    .header{
+      padding: 18px 18px 12px;
+      border-bottom: 1px solid rgba(2,6,23,.10);
+      background:
+        linear-gradient(135deg, rgba(249,115,22,.10), rgba(2,6,23,.04)),
+        #fff;
+    }
+
+    /* SVG güneş + başlık (ortalanmış, büyük) */
+    .brand{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      text-align:center;
+      gap: 10px;
+    }
+
+    .sun{
+      width: 78px;
+      height: 78px;
+      display:block;
+      filter: drop-shadow(0 10px 18px rgba(2,6,23,.10));
+    }
+
+    .brand h1{
+      margin:0;
+      font-size: 34px;
+      letter-spacing: .8px;
+      line-height:1.05;
+      font-weight: 1000;
+      text-transform: uppercase;
+    }
+    .brand .sub{
+      margin: 0;
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: .6px;
+      color: rgba(2,6,23,.75);
+      text-transform: uppercase;
+    }
+
+    .meta{
+      margin-top: 10px;
+      display:flex;
+      justify-content:center;
+      gap: 10px;
+      flex-wrap:wrap;
+    }
+    .chip{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding: 9px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(2,6,23,.12);
+      background: rgba(255,255,255,.7);
+      font-weight: 900;
+      font-size: 14px;
+      letter-spacing:.2px;
+      white-space:nowrap;
+    }
+    .chip .muted{ color: rgba(2,6,23,.65); font-weight: 900; }
+    .chip .year{
+      font-weight: 1000;
+      letter-spacing:.4px;
+    }
+
+    .body{
+      padding: 14px 18px 16px;
+    }
+
+    .section{
+      border: 1px solid rgba(2,6,23,.10);
+      border-radius: 16px;
+      overflow:hidden;
+      margin-top: 12px;
+    }
+    .section:first-child{ margin-top:0; }
+
+    .section-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      padding: 12px 14px;
+      background: rgba(2,6,23,.03);
+      border-bottom: 1px solid rgba(2,6,23,.10);
+    }
+    .section-title{
+      margin:0;
+      font-size: 18px;
+      font-weight: 1000;
+      letter-spacing:.2px;
+    }
+    .badge{
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(249,115,22,.12);
+      color: #c2410c;
+      font-weight: 1000;
+      font-size: 12px;
+      letter-spacing:.2px;
+    }
+
+    table{ width:100%; border-collapse: collapse; }
+    td{
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(2,6,23,.08);
+      vertical-align:middle;
+      font-size: 16px;
+      font-weight: 750;
+    }
+    tr:last-child td{ border-bottom:none; }
+    td.price{
+      text-align:right;
+      font-weight: 1100;
+      font-size: 18px;
+      white-space:nowrap;
+      letter-spacing:.2px;
+    }
+
+    .note{
+      margin-top: 12px;
+      border-radius: 16px;
+      border: 2px dashed rgba(2,6,23,.25);
+      padding: 12px 14px;
+      background: rgba(2,6,23,.02);
+    }
+    .note .t{
+      font-weight: 1100;
+      font-size: 16px;
+      margin:0 0 6px 0;
+      letter-spacing:.2px;
+    }
+    .note p{
+      margin:0;
+      font-size: 14.5px;
+      font-weight: 750;
+      color: rgba(2,6,23,.78);
+      line-height:1.45;
+    }
+
+    /* Modal */
+    .modal-backdrop{
+      position:fixed;
+      inset:0;
+      background: rgba(2,6,23,.60);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding: 14px;
+      z-index: 50;
+    }
+    .modal-backdrop.open{ display:flex; }
+
+    .modal{
+      width: min(760px, 100%);
+      background:#fff;
+      border-radius: 18px;
+      box-shadow: 0 30px 120px rgba(2,6,23,.35);
+      overflow:hidden;
+      border: 1px solid rgba(255,255,255,.25);
+    }
+    .modal-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding: 14px 16px;
+      background: linear-gradient(135deg, rgba(249,115,22,.12), rgba(2,6,23,.05));
+      border-bottom: 1px solid rgba(2,6,23,.10);
+    }
+    .modal-head h3{
+      margin:0;
+      font-size: 16px;
+      font-weight: 1000;
+      letter-spacing:.2px;
+    }
+    .modal-close{
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      border: 1px solid rgba(2,6,23,.14);
+      background: rgba(255,255,255,.9);
+      cursor:pointer;
+      font-weight: 1100;
+      color:var(--ink);
+    }
+    .modal-body{
+      padding: 14px 16px 6px;
+      max-height: min(70vh, 720px);
+      overflow:auto;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr 170px;
+      gap: 10px 12px;
+      align-items:center;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(2,6,23,.08);
+    }
+    .grid:last-child{ border-bottom:none; }
+
+    .label{
+      font-weight: 950;
+      font-size: 14px;
+      color: rgba(2,6,23,.85);
+      line-height:1.35;
+    }
+    .field input{
+      width:100%;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(2,6,23,.18);
+      outline:none;
+      font-weight: 950;
+      font-size: 14px;
+      transition: border .12s ease, box-shadow .12s ease;
+    }
+    .field input:focus{
+      border-color: rgba(249,115,22,.55);
+      box-shadow: 0 0 0 4px rgba(249,115,22,.12);
+    }
+
+    /* Para inputu: sağda otomatik ₺ */
+    .money{ position:relative; }
+    .money input{ padding-right: 34px; }
+    .money::after{
+      content:"₺";
+      position:absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: rgba(2,6,23,.55);
+      font-weight: 1100;
+      pointer-events:none;
+    }
+
+    .modal-foot{
+      display:flex;
+      gap:10px;
+      justify-content:flex-end;
+      padding: 12px 16px;
+      border-top: 1px solid rgba(2,6,23,.10);
+      background: rgba(2,6,23,.02);
+    }
+    .btn.danger{
+      border:none;
+      background: rgba(2,6,23,.08);
+      color: var(--ink);
+      font-weight: 1100;
+    }
+
+    /* Yazdırma: tek A4, sadece fiyat listesi */
+    @page{
+      size: A4;
+      margin: 10mm;
+    }
+    
+  @media print{
+    body{
+      background:#fff !important;
+      padding:0 !important;
+    }
+    .toolbar, .modal-backdrop{ display:none !important; }
+
+    /* Varsayılan: siyah-beyaz baskı */
+    body.print-bw .sheet{
+      box-shadow:none !important;
+      border: 1px solid #000 !important;
+      border-radius: 0 !important;
+      max-width: 100% !important;
+    }
+    body.print-bw .header{
+      background:#fff !important;
+      border-bottom: 1px solid #000 !important;
+    }
+    body.print-bw .badge{ background:#fff !important; color:#000 !important; border:1px solid #000 !important; }
+    body.print-bw .chip{ background:#fff !important; color:#000 !important; border:1px solid #000 !important; }
+    body.print-bw .note{ border: 2px dashed #000 !important; background:#fff !important; }
+    body.print-bw .section{ border: 1px solid #000 !important; }
+    body.print-bw .section-head{ background:#fff !important; border-bottom:1px solid #000 !important; }
+    body.print-bw td{ border-bottom: 1px solid #000 !important; }
+
+    /* Renkli baskı: ekran temasıyla uyumlu (turuncu tonları) */
+    body.print-color .sheet{
+      box-shadow:none !important;
+      border: 1px solid rgba(2,6,23,.22) !important;
+      border-radius: 0 !important;
+      max-width: 100% !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    body.print-color .header{
+      background:
+        linear-gradient(135deg, rgba(249,115,22,.14), rgba(2,6,23,.04)),
+        #fff !important;
+      border-bottom: 1px solid rgba(2,6,23,.18) !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    body.print-color .badge{
+      background: rgba(249,115,22,.14) !important;
+      color: #9a3412 !important;
+      border: 1px solid rgba(249,115,22,.30) !important;
+    }
+    body.print-color .chip{
+      background: rgba(255,255,255,.92) !important;
+      border: 1px solid rgba(2,6,23,.16) !important;
+    }
+    body.print-color .section{ border: 1px solid rgba(2,6,23,.16) !important; }
+    body.print-color .section-head{
+      background: rgba(249,115,22,.06) !important;
+      border-bottom: 1px solid rgba(2,6,23,.14) !important;
+    }
+    body.print-color td{ border-bottom: 1px solid rgba(2,6,23,.12) !important; }
+    body.print-color .note{
+      border: 2px dashed rgba(249,115,22,.55) !important;
+      background: rgba(249,115,22,.04) !important;
+    }
+
+    /* Büyük ama tek sayfaya sığacak şekilde baskıda dengeli */
+    .brand h1{ font-size: 30px !important; }
+    .brand .sub{ font-size: 14px !important; }
+    td{ font-size: 15px !important; }
+    td.price{ font-size: 17px !important; }
+  }
+</style>
+</head>
+<body class="print-bw">
+
+  <div class="toolbar" aria-label="Araç Çubuğu">
+    <button class="btn" id="btnPrint" type="button">Yazdır</button>
+    <button class="btn primary" id="btnEdit" type="button">Kaydet</button>
+  </div>
+
+  <div class="sheet" id="priceList">
+    <div class="header">
+      <div class="brand">
+        <!-- SVG güneş (logoyu kaldırdık) -->
+        <svg class="sun" viewBox="0 0 64 64" role="img" aria-label="Güneş İkonu" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="g" cx="50%" cy="50%" r="55%">
+              <stop offset="0%" stop-color="#fbbf24"/>
+              <stop offset="55%" stop-color="#f59e0b"/>
+              <stop offset="100%" stop-color="#d97706"/>
+            </radialGradient>
+          </defs>
+          <circle cx="32" cy="32" r="14" fill="url(#g)" stroke="#0f172a" stroke-width="2"/>
+          <!-- ışınlar -->
+          <g stroke="#0f172a" stroke-width="3" stroke-linecap="round">
+            <line x1="32" y1="4"  x2="32" y2="14"/>
+            <line x1="32" y1="50" x2="32" y2="60"/>
+            <line x1="4"  y1="32" x2="14" y2="32"/>
+            <line x1="50" y1="32" x2="60" y2="32"/>
+            <line x1="12" y1="12" x2="19" y2="19"/>
+            <line x1="45" y1="45" x2="52" y2="52"/>
+            <line x1="12" y1="52" x2="19" y2="45"/>
+            <line x1="45" y1="19" x2="52" y2="12"/>
+          </g>
+        </svg>
+
+        <div>
+          <h1>FENOMEN EĞİTİM KURUMLARI</h1>
+          <p class="sub">FİYAT LİSTESİ</p>
+        </div>
+
+        <div class="meta" aria-label="Bilgiler">
+          <span class="chip"><span class="muted">Dönem:</span> <span class="year" id="yearText">2026–2027</span></span>
+          <span class="chip"><span class="muted">Para Birimi:</span> TRY (₺)</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="body">
+
+      <div class="section" aria-label="Deneme Sınav Ücretleri">
+        <div class="section-head">
+          <h3 class="section-title">Deneme Sınav Ücretleri</h3>
+          <span class="badge">Deneme</span>
+        </div>
+        <table>
+          <tr>
+            <td>5 ve 6. Sınıflar</td>
+            <td class="price" data-key="deneme_56">6.000 ₺</td>
+          </tr>
+          <tr>
+            <td>7. Sınıflar</td>
+            <td class="price" data-key="deneme_7">8.000 ₺</td>
+          </tr>
+          <tr>
+            <td>8. Sınıflar</td>
+            <td class="price" data-key="deneme_8">14.000 ₺</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="section" aria-label="Eğitim Dönemi Ücretleri">
+        <div class="section-head">
+          <h3 class="section-title">Eğitim Dönemi Ücretleri <span style="font-weight:900; color: rgba(2,6,23,.70);">(Eylül)</span></h3>
+          <span class="badge">Dönem</span>
+        </div>
+        <table>
+          <tr>
+            <td>Hafta sonu 8. Sınıflar</td>
+            <td class="price" data-key="donem_hsonu_8">85.000 ₺</td>
+          </tr>
+          <tr>
+            <td>Hafta içi 1, 2, 3, 4. Sınıflar</td>
+            <td class="price" data-key="donem_hici_1234">125.000 ₺</td>
+          </tr>
+          <tr>
+            <td>Hafta içi 5 ve 6. Sınıflar</td>
+            <td class="price" data-key="donem_hici_56">125.000 ₺</td>
+          </tr>
+          <tr>
+            <td>Hafta içi 7. Sınıflar</td>
+            <td class="price" data-key="donem_hici_7">130.000 ₺</td>
+          </tr>
+          <tr>
+            <td>Hafta içi 8. Sınıflar</td>
+            <td class="price" data-key="donem_hici_8">145.000 ₺</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="note" aria-label="Önemli Not">
+        <div class="t">Önemli Not</div>
+        <p>
+          Bu fiyatlar erken kayıt için geçerli olup <strong><span id="discountDateText">01 Nisan 2026</span></strong> tarihine kadar geçerlidir.
+          Sonrasında fiyatlarda yenilenmeye gidilecektir.
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal-backdrop" id="modalBackdrop" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-head">
+        <h3 id="modalTitle">Fiyatları ve Yılı Güncelle</h3>
+        <button class="modal-close" id="btnClose" type="button" aria-label="Kapat">✕</button>
+      </div>
+
+      <form id="editForm" autocomplete="off">
+        <div class="modal-body" id="modalBody">
+          <!-- JS buraya alanları doldurur -->
+        </div>
+
+        <div class="modal-foot">
+          <button class="btn danger" id="btnCancel" type="button">İptal</button>
+          <button class="btn primary" id="btnSave" type="submit">Kaydet</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      "use strict";
+
+      const STORAGE_KEY = "fenomen_fiyat_listesi_v3";
+
+      const btnPrint = document.getElementById("btnPrint");
+      const btnEdit  = document.getElementById("btnEdit");
+
+      const backdrop = document.getElementById("modalBackdrop");
+      const btnClose = document.getElementById("btnClose");
+      const btnCancel= document.getElementById("btnCancel");
+      const editForm = document.getElementById("editForm");
+      const modalBody= document.getElementById("modalBody");
+      const yearText = document.getElementById("yearText");
+      const discountDateText = document.getElementById("discountDateText");
+
+      const priceCells = Array.from(document.querySelectorAll("td.price[data-key]"));
+
+      const LABELS = {
+        deneme_56: "Deneme: 5 ve 6. Sınıflar",
+        deneme_7:  "Deneme: 7. Sınıflar",
+        deneme_8:  "Deneme: 8. Sınıflar",
+        donem_hsonu_8:   "Dönem: Hafta sonu 8. Sınıflar",
+        donem_hici_1234: "Dönem: Hafta içi 1, 2, 3, 4. Sınıflar",
+        donem_hici_56:   "Dönem: Hafta içi 5 ve 6. Sınıflar",
+        donem_hici_7:    "Dönem: Hafta içi 7. Sınıflar",
+        donem_hici_8:    "Dönem: Hafta içi 8. Sınıflar"
+      };
+
+      const DEFAULT_YEAR = "2026–2027";
+      const DEFAULT_DISCOUNT_ISO = "2026-04-01";
+      const DEFAULT_PRINT_MODE = "bw";
+
+      function toInt(value){
+        const digits = String(value ?? "").replace(/[^0-9]/g, "");
+        return digits ? parseInt(digits, 10) : 0;
+      }
+
+      function formatTRY(amount){
+        const n = Number(amount || 0);
+        const s = n.toLocaleString("tr-TR");
+        return s + " ₺";
+      }
+
+      function sanitizeYear(s){
+        // Kullanıcı "2026-2027" ya da "2026–2027" yazabilir.
+        // Fazla karakterleri temizleyip "YYYY–YYYY" formatına yaklaştırır.
+        const raw = String(s ?? "").trim();
+        if(!raw) return DEFAULT_YEAR;
+
+        // sadece rakam, boşluk, tire/en dash/em dash kalsın
+        const cleaned = raw.replace(/[^0-9\-–—\s]/g, "").replace(/\s+/g, " ").trim();
+
+        // "2026-2027" gibi ise en dash'e çevir
+        const normalized = cleaned.replace(/[—-]/g, "–");
+
+        // 4+4 rakam yakala
+        const m = normalized.match(/(\d{4})\s*–\s*(\d{4})/);
+        if(m) return m[1] + "–" + m[2];
+
+        // tek yıl gelirse olduğu gibi yaz
+        const y = normalized.match(/\d{4}/);
+        return y ? y[0] : DEFAULT_YEAR;
+      }
+
+function sanitizeISODate(v){
+  const raw = String(v ?? "").trim();
+  const m = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(!m) return DEFAULT_DISCOUNT_ISO;
+
+  const y = parseInt(m[1], 10);
+  const mo = parseInt(m[2], 10);
+  const d = parseInt(m[3], 10);
+
+  if(y < 1900 || y > 2100) return DEFAULT_DISCOUNT_ISO;
+  if(mo < 1 || mo > 12) return DEFAULT_DISCOUNT_ISO;
+  if(d < 1 || d > 31) return DEFAULT_DISCOUNT_ISO;
+
+  return m[1] + "-" + m[2] + "-" + m[3];
+}
+
+function formatTRLongDate(iso){
+  const safe = sanitizeISODate(iso);
+  const parts = safe.split("-");
+  const y = parseInt(parts[0], 10);
+  const m = parseInt(parts[1], 10);
+  const d = parseInt(parts[2], 10);
+
+  const months = ["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
+  const dd = String(d).padStart(2, "0");
+  return dd + " " + months[m-1] + " " + String(y);
+}
+
+function applyPrintMode(mode){
+  const m = (mode === "color") ? "color" : "bw";
+  document.body.classList.remove("print-bw", "print-color");
+  document.body.classList.add(m === "color" ? "print-color" : "print-bw");
+}
+
+
+      function getDefaultDataFromTable(){
+        const data = { year: DEFAULT_YEAR, discount_iso: DEFAULT_DISCOUNT_ISO, print_mode: DEFAULT_PRINT_MODE, prices: {} };
+        for(const cell of priceCells){
+          data.prices[cell.dataset.key] = toInt(cell.textContent);
+        }
+        return data;
+      }
+
+      function loadData(){
+        try{
+          const raw = localStorage.getItem(STORAGE_KEY);
+          const base = getDefaultDataFromTable();
+          if(!raw) return base;
+
+          const parsed = JSON.parse(raw);
+          if(!parsed || typeof parsed !== "object") return base;
+
+          const out = { year: DEFAULT_YEAR, discount_iso: DEFAULT_DISCOUNT_ISO, print_mode: DEFAULT_PRINT_MODE, prices: {} };
+
+          out.year = sanitizeYear(parsed.year ?? base.year);
+          out.discount_iso = sanitizeISODate(parsed.discount_iso ?? base.discount_iso);
+          out.print_mode = (parsed.print_mode === "color") ? "color" : base.print_mode;
+
+          const p = (parsed.prices && typeof parsed.prices === "object") ? parsed.prices : {};
+          for(const k of Object.keys(base.prices)){
+            out.prices[k] = (typeof p[k] === "number") ? p[k] : base.prices[k];
+          }
+
+          return out;
+        }catch(e){
+          return getDefaultDataFromTable();
+        }
+      }
+
+      function saveData(data){
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      }
+
+      function applyToUI(data){
+        yearText.textContent = sanitizeYear(data.year);
+        if(discountDateText) discountDateText.textContent = formatTRLongDate(data.discount_iso);
+        applyPrintMode(data.print_mode);
+        for(const cell of priceCells){
+          const key = cell.dataset.key;
+          cell.textContent = formatTRY(data.prices[key]);
+        }
+      }
+
+      function openModal(){
+        const data = loadData();
+        modalBody.innerHTML = "";
+
+        // Yıl alanı (en üstte)
+        const yearRow = document.createElement("div");
+        yearRow.className = "grid";
+
+        const yearLabel = document.createElement("div");
+        yearLabel.className = "label";
+        yearLabel.textContent = "Dönem/Yıl (ör: 2026–2027)";
+
+        const yearField = document.createElement("div");
+        yearField.className = "field";
+
+        const yearInput = document.createElement("input");
+        yearInput.type = "text";
+        yearInput.name = "year";
+        yearInput.value = sanitizeYear(data.year);
+        yearInput.setAttribute("aria-label", "Dönem/Yıl");
+        yearInput.addEventListener("input", () => {
+          // yazarken izin verilen karakterleri tut
+          yearInput.value = yearInput.value.replace(/[^0-9\-–—\s]/g, "");
+        });
+
+        yearField.appendChild(yearInput);
+        yearRow.appendChild(yearLabel);
+        yearRow.appendChild(yearField);
+        
+// Erken kayıt son tarih (indirimli fiyatlar)
+const dateRow = document.createElement("div");
+dateRow.className = "grid";
+
+const dateLabel = document.createElement("div");
+dateLabel.className = "label";
+dateLabel.textContent = "Erken kayıt son tarih (indirimli fiyatlar)";
+
+const dateField = document.createElement("div");
+dateField.className = "field";
+
+const dateInput = document.createElement("input");
+dateInput.type = "date";
+dateInput.name = "discount_iso";
+dateInput.value = sanitizeISODate(data.discount_iso);
+dateInput.setAttribute("aria-label", "Erken kayıt son tarih");
+dateField.appendChild(dateInput);
+
+dateRow.appendChild(dateLabel);
+dateRow.appendChild(dateField);
+modalBody.appendChild(dateRow);
+
+// Yazdırma modu (siyah-beyaz / renkli)
+const printRow = document.createElement("div");
+printRow.className = "grid";
+
+const printLabel = document.createElement("div");
+printLabel.className = "label";
+printLabel.textContent = "Yazdırma modu";
+
+const printField = document.createElement("div");
+printField.className = "field";
+
+const select = document.createElement("select");
+select.name = "print_mode";
+select.setAttribute("aria-label", "Yazdırma modu");
+select.style.width = "100%";
+select.style.padding = "10px 12px";
+select.style.borderRadius = "12px";
+select.style.border = "1px solid rgba(2,6,23,.18)";
+select.style.fontWeight = "950";
+select.style.fontSize = "14px";
+select.style.background = "#fff";
+
+const optBW = document.createElement("option");
+optBW.value = "bw";
+optBW.textContent = "Siyah-beyaz (tasarruflu)";
+
+const optColor = document.createElement("option");
+optColor.value = "color";
+optColor.textContent = "Renkli (turuncu tema)";
+
+select.appendChild(optBW);
+select.appendChild(optColor);
+select.value = (data.print_mode === "color") ? "color" : "bw";
+
+printField.appendChild(select);
+printRow.appendChild(printLabel);
+printRow.appendChild(printField);
+modalBody.appendChild(printRow);
+
+modalBody.appendChild(yearRow);
+
+        // Fiyat alanları
+        for(const cell of priceCells){
+          const key = cell.dataset.key;
+          const label = LABELS[key] || key;
+
+          const row = document.createElement("div");
+          row.className = "grid";
+
+          const lab = document.createElement("div");
+          lab.className = "label";
+          lab.textContent = label;
+
+          const money = document.createElement("div");
+          money.className = "money field";
+
+          const input = document.createElement("input");
+          input.type = "text";
+          input.inputMode = "numeric";
+          input.autocomplete = "off";
+          input.spellcheck = false;
+          input.name = key;
+          input.value = String(data.prices[key] || 0);
+          input.setAttribute("aria-label", label);
+
+          input.addEventListener("input", () => {
+            input.value = input.value.replace(/[^0-9]/g, "");
+          });
+
+          money.appendChild(input);
+          row.appendChild(lab);
+          row.appendChild(money);
+          modalBody.appendChild(row);
+        }
+
+        backdrop.classList.add("open");
+        backdrop.setAttribute("aria-hidden", "false");
+
+        const firstInput = modalBody.querySelector("input");
+        if(firstInput) firstInput.focus();
+
+        document.addEventListener("keydown", onEscClose);
+      }
+
+      function closeModal(){
+        backdrop.classList.remove("open");
+        backdrop.setAttribute("aria-hidden", "true");
+        document.removeEventListener("keydown", onEscClose);
+      }
+
+      function onEscClose(e){
+        if(e.key === "Escape") closeModal();
+      }
+
+      backdrop.addEventListener("click", (e) => {
+        if(e.target === backdrop) closeModal();
+      });
+
+      btnClose.addEventListener("click", closeModal);
+      btnCancel.addEventListener("click", closeModal);
+
+      btnEdit.addEventListener("click", openModal);
+
+      editForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+
+        const fd = new FormData(editForm);
+        const current = loadData();
+
+        const yearVal = sanitizeYear(fd.get("year"));
+        current.year = yearVal;
+
+        current.discount_iso = sanitizeISODate(fd.get("discount_iso"));
+        current.print_mode = (fd.get("print_mode") === "color") ? "color" : "bw";
+
+        for(const cell of priceCells){
+          const k = cell.dataset.key;
+          current.prices[k] = toInt(fd.get(k));
+        }
+
+        saveData(current);
+        applyToUI(current);
+        closeModal();
+      });
+
+      btnPrint.addEventListener("click", () => window.print());
+
+      // İlk yüklemede localStorage varsa uygula
+      applyToUI(loadData());
+    })();
+  </script>
+</body>
+</html>
