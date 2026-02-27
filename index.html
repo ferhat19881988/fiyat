@@ -428,15 +428,15 @@
         </div>
         <table>
           <tr>
-            <td>5 ve 6. Sınıflar</td>
+            <td data-label-key="deneme_56">5 ve 6. Sınıflar</td>
             <td class="price" data-key="deneme_56">6.000 ₺</td>
           </tr>
           <tr>
-            <td>7. Sınıflar</td>
+            <td data-label-key="deneme_7">7. Sınıflar</td>
             <td class="price" data-key="deneme_7">8.000 ₺</td>
           </tr>
           <tr>
-            <td>8. Sınıflar</td>
+            <td data-label-key="deneme_8">8. Sınıflar</td>
             <td class="price" data-key="deneme_8">14.000 ₺</td>
           </tr>
         </table>
@@ -449,23 +449,23 @@
         </div>
         <table>
           <tr>
-            <td>Hafta sonu 8. Sınıflar</td>
+            <td data-label-key="donem_hsonu_8">Hafta sonu 8. Sınıflar</td>
             <td class="price" data-key="donem_hsonu_8">85.000 ₺</td>
           </tr>
           <tr>
-            <td>Hafta içi 1, 2, 3, 4. Sınıflar</td>
+            <td data-label-key="donem_hici_1234">Hafta içi 1, 2, 3, 4. Sınıflar</td>
             <td class="price" data-key="donem_hici_1234">125.000 ₺</td>
           </tr>
           <tr>
-            <td>Hafta içi 5 ve 6. Sınıflar</td>
+            <td data-label-key="donem_hici_56">Hafta içi 5 ve 6. Sınıflar</td>
             <td class="price" data-key="donem_hici_56">125.000 ₺</td>
           </tr>
           <tr>
-            <td>Hafta içi 7. Sınıflar</td>
+            <td data-label-key="donem_hici_7">Hafta içi 7. Sınıflar</td>
             <td class="price" data-key="donem_hici_7">130.000 ₺</td>
           </tr>
           <tr>
-            <td>Hafta içi 8. Sınıflar</td>
+            <td data-label-key="donem_hici_8">Hafta içi 8. Sınıflar</td>
             <td class="price" data-key="donem_hici_8">145.000 ₺</td>
           </tr>
         </table>
@@ -478,15 +478,15 @@
         </div>
         <table>
           <tr>
-            <td>Soru Analizli Sessiz Çalışma <span style="font-weight:900; color: rgba(2,6,23,.70);">(15.00-19.30 Seansı)</span></td>
+            <td data-label-key="sessiz_1530">Soru Analizli Sessiz Çalışma <span style="font-weight:900; color: rgba(2,6,23,.70);">(15.00-19.30 Seansı)</span></td>
             <td class="price" data-key="sessiz_1530">6.500 ₺</td>
           </tr>
           <tr>
-            <td>Soru Analizli Sessiz Çalışma <span style="font-weight:900; color: rgba(2,6,23,.70);">(20.00-22.15 Seansı)</span></td>
+            <td data-label-key="sessiz_2000">Soru Analizli Sessiz Çalışma <span style="font-weight:900; color: rgba(2,6,23,.70);">(20.00-22.15 Seansı)</span></td>
             <td class="price" data-key="sessiz_2000">5.000 ₺</td>
           </tr>
           <tr>
-            <td>Soru Analizli Sessiz Çalışma <span style="font-weight:900; color: rgba(2,6,23,.70);">Tam Paket</span></td>
+            <td data-label-key="sessiz_paket">Soru Analizli Sessiz Çalışma <span style="font-weight:900; color: rgba(2,6,23,.70);">Tam Paket</span></td>
             <td class="price" data-key="sessiz_paket">9.000 ₺</td>
           </tr>
         </table>
@@ -543,8 +543,8 @@
       const discountDateText = document.getElementById("discountDateText");
 
       const priceCells = Array.from(document.querySelectorAll("td.price[data-key]"));
-
-      const LABELS = {
+      const labelCells = Array.from(document.querySelectorAll("td[data-label-key]"));
+const LABELS = {
         deneme_56: "Deneme: 5 ve 6. Sınıflar",
         deneme_7:  "Deneme: 7. Sınıflar",
         deneme_8:  "Deneme: 8. Sınıflar",
@@ -634,6 +634,14 @@ function applyPrintMode(mode){
         for(const cell of priceCells){
           data.prices[cell.dataset.key] = toInt(cell.textContent);
         }
+        for(const c of labelCells){
+          const k = c.dataset.labelKey;
+          const t = String(c.textContent || "").trim();
+          data.labels[k] = t || (LABELS[k] || k);
+        }
+        for(const k of Object.keys(LABELS)){
+          if(!(k in data.labels)) data.labels[k] = LABELS[k];
+        }
         return data;
       }
 
@@ -657,6 +665,12 @@ function applyPrintMode(mode){
             out.prices[k] = (typeof p[k] === "number") ? p[k] : base.prices[k];
           }
 
+          const l = (parsed.labels && typeof parsed.labels === "object") ? parsed.labels : {};
+          for(const k of Object.keys(base.prices)){
+            const v = (typeof l[k] === "string") ? l[k] : (base.labels ? base.labels[k] : null);
+            out.labels[k] = String(v || (LABELS[k] || k)).trim();
+          }
+
           return out;
         }catch(e){
           return getDefaultDataFromTable();
@@ -671,6 +685,10 @@ function applyPrintMode(mode){
         yearText.textContent = sanitizeYear(data.year);
         if(discountDateText) discountDateText.textContent = formatTRLongDate(data.discount_iso);
         applyPrintMode(data.print_mode);
+        for(const c of labelCells){
+          const k = c.dataset.labelKey;
+          if(data.labels && typeof data.labels[k] === "string") c.textContent = String(data.labels[k]).trim();
+        }
         for(const cell of priceCells){
           const key = cell.dataset.key;
           cell.textContent = formatTRY(data.prices[key]);
@@ -777,9 +795,14 @@ modalBody.appendChild(yearRow);
           const row = document.createElement("div");
           row.className = "grid";
 
-          const lab = document.createElement("div");
-          lab.className = "label";
-          lab.textContent = label;
+          const labWrap = document.createElement("div");
+          labWrap.className = "field";
+          const labInput = document.createElement("input");
+          labInput.type = "text";
+          labInput.name = key + "__label";
+          labInput.value = String((data.labels && data.labels[key]) ? data.labels[key] : label);
+          labInput.setAttribute("aria-label", label + " başlığı");
+          labWrap.appendChild(labInput);
 
           const money = document.createElement("div");
           money.className = "money field";
@@ -798,7 +821,7 @@ modalBody.appendChild(yearRow);
           });
 
           money.appendChild(input);
-          row.appendChild(lab);
+          row.appendChild(labWrap);
           row.appendChild(money);
           modalBody.appendChild(row);
         }
@@ -846,6 +869,9 @@ modalBody.appendChild(yearRow);
         for(const cell of priceCells){
           const k = cell.dataset.key;
           current.prices[k] = toInt(fd.get(k));
+          const labVal = fd.get(k + "__label");
+          if(!current.labels) current.labels = {};
+          current.labels[k] = String(labVal || (LABELS[k] || k)).trim();
         }
 
         saveData(current);
