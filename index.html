@@ -537,7 +537,8 @@
       const backdrop = document.getElementById("modalBackdrop");
       const btnClose = document.getElementById("btnClose");
       const btnCancel= document.getElementById("btnCancel");
-      const editForm = document.getElementById("editForm");
+      const btnSave  = document.getElementById("btnSave");
+const editForm = document.getElementById("editForm");
       const modalBody= document.getElementById("modalBody");
       const yearText = document.getElementById("yearText");
       const discountDateText = document.getElementById("discountDateText");
@@ -854,30 +855,47 @@ modalBody.appendChild(yearRow);
 
       btnEdit.addEventListener("click", openModal);
 
-      editForm.addEventListener("submit", (e) => {
-        e.preventDefault();
+      function handleSave(e){
+        if(e) e.preventDefault();
+        try{
+          const fd = new FormData(editForm);
+          const current = loadData();
 
-        const fd = new FormData(editForm);
-        const current = loadData();
+          const yearVal = sanitizeYear(fd.get("year"));
+          current.year = yearVal;
 
-        const yearVal = sanitizeYear(fd.get("year"));
-        current.year = yearVal;
+          current.discount_iso = sanitizeISODate(fd.get("discount_iso"));
+          current.print_mode = (fd.get("print_mode") === "color") ? "color" : "bw";
 
-        current.discount_iso = sanitizeISODate(fd.get("discount_iso"));
-        current.print_mode = (fd.get("print_mode") === "color") ? "color" : "bw";
+          for(const cell of priceCells){
+            const k = cell.dataset.key;
+            current.prices[k] = toInt(fd.get(k));
+            const labVal = fd.get(k + "__label");
+            if(!current.labels) current.labels = {};
+            current.labels[k] = String(labVal || (LABELS[k] || k)).trim();
+          }
 
-        for(const cell of priceCells){
-          const k = cell.dataset.key;
-          current.prices[k] = toInt(fd.get(k));
-          const labVal = fd.get(k + "__label");
-          if(!current.labels) current.labels = {};
-          current.labels[k] = String(labVal || (LABELS[k] || k)).trim();
+          saveData(current);
+          applyToUI(current);
+          closeModal();
+        }catch(err){
+          console.error("Kaydet hatası:", err);
+          alert("Kaydedilemedi. Tarayıcı konsolunu kontrol edin.
+Hata: " + (err && err.message ? err.message : err));
         }
+      }
 
-        saveData(current);
-        applyToUI(current);
-        closeModal();
+      editForm.addEventListener("submit", handleSave);
+      // Bazı tarayıcılarda/ortamlarda submit tetiklenmezse, buton tıklamasını da yakala:
+      btnSave.addEventListener("click", (e) => {
+        // form submit zaten çalışıyorsa çift tetiklememek için:
+        // requestSubmit destekleniyorsa onu kullan
+        if(typeof editForm.requestSubmit === "function"){
+          e.preventDefault();
+          editForm.requestSubmit();
+        }
       });
+
 
       btnPrint.addEventListener("click", () => window.print());
 
