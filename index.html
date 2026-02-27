@@ -631,7 +631,7 @@ function applyPrintMode(mode){
 
 
       function getDefaultDataFromTable(){
-        const data = { year: DEFAULT_YEAR, discount_iso: DEFAULT_DISCOUNT_ISO, print_mode: DEFAULT_PRINT_MODE, prices: {} };
+        const data = { year: DEFAULT_YEAR, discount_iso: DEFAULT_DISCOUNT_ISO, print_mode: DEFAULT_PRINT_MODE, prices: {}, labels: {} };
         for(const cell of priceCells){
           data.prices[cell.dataset.key] = toInt(cell.textContent);
         }
@@ -655,7 +655,7 @@ function applyPrintMode(mode){
           const parsed = JSON.parse(raw);
           if(!parsed || typeof parsed !== "object") return base;
 
-          const out = { year: DEFAULT_YEAR, discount_iso: DEFAULT_DISCOUNT_ISO, print_mode: DEFAULT_PRINT_MODE, prices: {} };
+          const out = { year: DEFAULT_YEAR, discount_iso: DEFAULT_DISCOUNT_ISO, print_mode: DEFAULT_PRINT_MODE, prices: {}, labels: {} };
 
           out.year = sanitizeYear(parsed.year ?? base.year);
           out.discount_iso = sanitizeISODate(parsed.discount_iso ?? base.discount_iso);
